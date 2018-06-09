@@ -75,9 +75,17 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES := minimedia.cpp
 LOCAL_C_INCLUDES := frameworks/av/services/camera/libcameraservice \
                     frameworks/av/media/libmediaplayerservice \
-                    system/media/camera/include
+                    frameworks/av/services/audiopolicy/service \
+                    frameworks/av/services/audiopolicy/ \
+                    system/media/camera/include \
+                    frameworks/av/services/audiopolicy/common/include \
+		    frameworks/av/services/audiopolicy/engine/interface \
+		    frameworks/av/services/audiopolicy/utilities \
+		    frameworks/av/services/audiopolicy/common/managerdefinitions/include/
+
 LOCAL_SHARED_LIBRARIES := libcameraservice \
                           libmediaplayerservice \
+                          libaudiopolicyservice \
                           libcamera_client \
                           libutils \
                           libmedia \
