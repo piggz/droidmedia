@@ -1,5 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 
+DROIDMEDIA_32 := $(shell cat frameworks/av/media/mediaserver/Android.mk |grep "LOCAL_32_BIT_ONLY[[:space:]]*:=[[:space:]]*" |grep -o "true\|1\|false\|0")
+
 ANDROID_MAJOR :=
 ANDROID_MINOR :=
 ANDROID_MICRO :=
@@ -55,16 +57,24 @@ LOCAL_SHARED_LIBRARIES := libc \
                           libstagefright \
                           libstagefright_foundation \
                           libmedia
+
+ifeq ($(strip $(ANDROID_MAJOR)),8)
+LOCAL_SHARED_LIBRARIES += liblog
+endif
+
 LOCAL_CPPFLAGS=-DANDROID_MAJOR=$(ANDROID_MAJOR) -DANDROID_MINOR=$(ANDROID_MINOR) -DANDROID_MICRO=$(ANDROID_MICRO) $(FORCE_HAL_PARAM)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := libdroidmedia
-ifeq ($(strip $(DROIDMEDIA_32)), true)
-LOCAL_MODULE_TARGET_ARCH := arm
-endif
 
 ifeq ($(strip $(ANDROID_MAJOR)),7)
 LOCAL_C_INCLUDES := frameworks/native/include/media/openmax \
                     frameworks/native/include/media/hardware
+else ifeq ($(strip $(ANDROID_MAJOR)),8)
+LOCAL_C_INCLUDES := frameworks/native/include/media/openmax \
+                    frameworks/native/include/media/hardware \
+                    frameworks/native/libs/nativewindow/include \
+                    frameworks/av/media/libstagefright/omx/include \
+                    frameworks/av/media/libstagefright/xmlparser/include
 else
 LOCAL_C_INCLUDES := frameworks/native/include/media/openmax
 endif
@@ -93,11 +103,23 @@ LOCAL_SHARED_LIBRARIES := libcameraservice \
                           libgui \
                           libcutils \
                           libui
+
+ifeq ($(strip $(ANDROID_MAJOR)),8)
+LOCAL_C_INCLUDES += frameworks/native/libs/sensor/include \
+                    frameworks/av/media/libstagefright/omx/include
+LOCAL_SHARED_LIBRARIES += liblog \
+                          libhidlbase \
+                          libhidltransport \
+                          libsensor \
+                          android.hardware.camera.common@1.0 \
+                          android.hardware.camera.provider@2.4
+endif
+
 LOCAL_MODULE_TAGS := optional
 LOCAL_CPPFLAGS=-DANDROID_MAJOR=$(ANDROID_MAJOR) -DANDROID_MINOR=$(ANDROID_MINOR) -DANDROID_MICRO=$(ANDROID_MICRO)
 LOCAL_MODULE := minimediaservice
 ifeq ($(strip $(DROIDMEDIA_32)), true)
-LOCAL_MODULE_TARGET_ARCH := arm
+LOCAL_32_BIT_ONLY := true
 endif
 include $(BUILD_EXECUTABLE)
 
@@ -109,6 +131,18 @@ LOCAL_SHARED_LIBRARIES := libutils \
                           libgui \
                           libcutils \
                           libui
+
+ifeq ($(strip $(ANDROID_MAJOR)),8)
+LOCAL_C_INCLUDES := frameworks/native/libs/sensor/include \
+                    frameworks/native/include
+LOCAL_SHARED_LIBRARIES += liblog \
+                          libhidlbase \
+                          libhidltransport \
+                          libsensor \
+                          android.hardware.camera.common@1.0 \
+                          android.hardware.camera.provider@2.4
+endif
+
 LOCAL_MODULE_TAGS := optional
 LOCAL_CPPFLAGS := -DANDROID_MAJOR=$(ANDROID_MAJOR) -DANDROID_MINOR=$(ANDROID_MINOR) -DANDROID_MICRO=$(ANDROID_MICRO)
 ifneq ($(CM_BUILD),)
@@ -119,7 +153,7 @@ LOCAL_CPPFLAGS += -DUSE_SERVICES_VENDOR_EXTENSION
 endif
 LOCAL_MODULE := minisfservice
 ifeq ($(strip $(DROIDMEDIA_32)), true)
-LOCAL_MODULE_TARGET_ARCH := arm
+LOCAL_32_BIT_ONLY := true
 endif
 include $(BUILD_EXECUTABLE)
 
@@ -139,8 +173,15 @@ endif
 ifneq ($(shell cat frameworks/native/services/surfaceflinger/SurfaceFlinger.h |grep getDisplayInfoEx),)
 LOCAL_CPPFLAGS += -DUSE_SERVICES_VENDOR_EXTENSION
 endif
-LOCAL_MODULE := libminisf
-ifeq ($(strip $(DROIDMEDIA_32)), true)
-LOCAL_MODULE_TARGET_ARCH := arm
+ifeq ($(strip $(ANDROID_MAJOR)),8)
+LOCAL_SHARED_LIBRARIES += liblog \
+                          libcamera_client \
+                          libhidlbase \
+                          libhidltransport \
+                          libsensor \
+                          android.hardware.camera.common@1.0 \
+                          android.hardware.camera.provider@2.4
 endif
+
+LOCAL_MODULE := libminisf
 include $(BUILD_SHARED_LIBRARY)
